@@ -1,32 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
-import TrackerPanel from './TrackerPanel';
 import DashboardPanel from './DashboardPanel';
+import TrackerPanel from './TrackerPanel';
 
 export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('menu');
-  const siteUrl = process.env.REACT_APP_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
+      
+      if (window.location.hash) {
+        window.history.replaceState(null, null, window.location.pathname);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (session) {
+      const isAdmin = session.user.email === process.env.REACT_APP_ADMIN_EMAIL;
+      if (!isAdmin && viewMode === 'menu') {
+        setViewMode('driver');
+      }
+    }
+  }, [session, viewMode]);
+
   const loginDenganGoogle = async () => {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: siteUrl,
+        redirectTo: window.location.origin,
       },
     });
   };
@@ -39,7 +52,7 @@ export default function App() {
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#f5f5f7' }}>
-        <p style={{ color: '#86868b' }}>Memuat aplikasi...</p>
+        <p style={{ color: '#86868b' }}>Memuat sistem...</p>
       </div>
     );
   }
@@ -60,13 +73,7 @@ export default function App() {
     );
   }
 
-  const isAdmin = session.user.email === 'jonathanhans.2205@gmail.com';
-
-  // Jika bukan admin, paksa masuk ke mode driveras
-  //asdasd
-  if (!isAdmin && viewMode === 'menu') {
-    setViewMode('driver');
-  }
+  const isAdmin = session.user.email === process.env.REACT_APP_ADMIN_EMAIL;
 
   return (
     <div style={{ padding: '24px', fontFamily: 'sans-serif', backgroundColor: '#f5f5f7', minHeight: '100vh' }}>
@@ -75,16 +82,9 @@ export default function App() {
           <span style={{ fontSize: '12px', color: '#86868b', display: 'block' }}>Akun Aktif</span>
           <strong style={{ color: '#1d1d1f', fontSize: '15px' }}>{session.user.email} {isAdmin ? '(Admin)' : '(Driver)'}</strong>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          {isAdmin && viewMode !== 'menu' && (
-            <button onClick={() => setViewMode('menu')} style={{ padding: '10px 20px', backgroundColor: '#f0f0f5', color: '#1d1d1f', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-              Kembali
-            </button>
-          )}
-          <button onClick={logout} style={{ padding: '10px 20px', backgroundColor: '#fff', color: '#ff453a', border: '1px solid #ff453a', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-            Keluar
-          </button>
-        </div>
+        <button onClick={logout} style={{ padding: '10px 20px', backgroundColor: '#fff', color: '#ff453a', border: '1px solid #ff453a', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
+          Keluar
+        </button>
       </div>
 
       <main style={{ maxWidth: '800px', margin: '0 auto' }}>
