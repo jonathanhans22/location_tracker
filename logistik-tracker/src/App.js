@@ -7,6 +7,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('menu');
+  const siteUrl = process.env.REACT_APP_SITE_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com');
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -22,7 +23,12 @@ export default function App() {
   }, []);
 
   const loginDenganGoogle = async () => {
-    await supabase.auth.signInWithOAuth({ provider: 'google' });
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: siteUrl,
+      },
+    });
   };
 
   const logout = async () => {
