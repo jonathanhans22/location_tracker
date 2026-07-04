@@ -122,6 +122,17 @@ export default function DashboardPanel() {
     return profiles[username] || username;
   };
 
+  const formatWaktu = (waktuISO) => {
+    const opsi = { 
+      day: 'numeric', 
+      month: 'short', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    };
+    return new Date(waktuISO).toLocaleString('id-ID', opsi);
+  };
+
   const daftarUsernameDriver = Object.keys(drivers);
 
   return (
@@ -150,7 +161,7 @@ export default function DashboardPanel() {
                     ID Sistem: {username}
                   </span>
                   <span style={{ fontSize: '12px', color: '#1d1d1f' }}>
-                    Aktif: {new Date(data.waktu).toLocaleTimeString()}
+                    Update: {formatWaktu(data.waktu)}
                   </span>
                 </Popup>
               </Marker>
