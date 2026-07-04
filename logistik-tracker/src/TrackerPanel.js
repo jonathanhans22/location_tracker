@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from './supabaseClient';
 
-export default function TrackerPanel({ userEmail }) {
+export default function TrackerPanel({ username }) {
   const [isTracking, setIsTracking] = useState(false);
   const [status, setStatus] = useState('Offline');
   const [watchId, setWatchId] = useState(null);
@@ -26,11 +26,10 @@ export default function TrackerPanel({ userEmail }) {
           
           setStatus(`Update terakhir Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)}`);
 
-          // Kirim data langsung ke Supabase
           const { error } = await supabase
             .from('delivery_tracking')
             .insert([
-              { driver_email: userEmail, latitude: lat, longitude: lng }
+              { driver_name: username, latitude: lat, longitude: lng }
             ]);
 
           if (error) console.error("Gagal menyimpan lokasi:", error);
